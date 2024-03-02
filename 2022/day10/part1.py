@@ -41,8 +41,8 @@ def read_file_lines(filename):
 
 
 if __name__ == '__main__':
-    print("Example: ")
-    process_file('example.txt')
+    # print("Example: ")
+    # process_file('example.txt')
 
-    # print('\n\nInput: ')
-    # process_file('input.txt')
+    print('\n\nInput: ')
+    process_file('input.txt')
