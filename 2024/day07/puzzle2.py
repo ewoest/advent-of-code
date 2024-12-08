@@ -1,39 +1,56 @@
 import os, sys
+from collections import defaultdict
+from itertools import combinations
 
-def check(target, current, remaining):
-    if len(remaining) == 0:
-        return target == current
-    
-    next = remaining[0]
-    next_remaining = remaining[1:]
+def to_point_sets(lines):
+    set_dict = defaultdict(set)
 
-    mult_val = current * next
-    add_val = current + next
-    concat_val = (int(str(current) + str(next)))
+    for row in range(len(lines)):
+        for col in range(len(lines[0])):
+            char = lines[row][col]
+            if char != '.':
+                set_dict[char].add((row,col))
 
-    return check(target, mult_val, next_remaining) or check(target, add_val, next_remaining) or check(target, concat_val, next_remaining)
-
-def check_line(line):
-    (left,right) = line.split(": ")
-
-    target = int(left)
-    numbers = [int(x) for x in right.split()]
-
-    current = numbers[0]
-    remaining = numbers[1:]
-
-    if check(target, current, remaining):
-        return target
-    return 0
+    return set_dict
 
 
+def is_valid_point(matrix, point):
+    if point[0] < 0 or point[1] < 0:
+        return False
+
+    return point[0] < len(matrix[0]) and point[1] < len(matrix)
+
+def get_antinodes(matrix, a, b):
+    diff = (a[0]-b[0], a[1]-b[1])
+
+    antinodes = set()
+
+    ant1 = a
+    while is_valid_point(matrix, ant1):
+        antinodes.add(ant1)
+        ant1 = (ant1[0]+diff[0], ant1[1]+diff[1])
+
+    ant2 = b
+    while is_valid_point(matrix, ant2):
+        antinodes.add(ant2)
+        ant2 = (ant2[0]-diff[0], ant2[1]-diff[1])
+
+    return antinodes
 
 def solve(filename):
     lines = read_file_lines(filename)
 
-    vals = [check_line(line) for line in lines]
+    point_set = to_point_sets(lines)
 
-    ans = sum(vals)
+    antipoints = set()
+
+    for (key, points) in point_set.items():
+        pairs = combinations(points, 2)
+        for (a, b) in pairs:
+            antinodes = get_antinodes(lines, a, b)
+            antipoints = antipoints.union(antinodes)
+
+    ans = len(antipoints)
     print(f'ans: {ans}')
 
 def read_file_lines(filename):

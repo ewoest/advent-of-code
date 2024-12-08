@@ -1,38 +1,49 @@
 import os, sys
+from collections import defaultdict
+from itertools import combinations
 
-def check(target, current, remaining):
-    if len(remaining) == 0:
-        return target == current
-    
-    next = remaining[0]
-    next_remaining = remaining[1:]
+def to_point_sets(lines):
+    set_dict = defaultdict(set)
 
-    mult_val = current * next
-    add_val = current + next
+    for row in range(len(lines)):
+        for col in range(len(lines[0])):
+            char = lines[row][col]
+            if char != '.':
+                set_dict[char].add((row,col))
 
-    return check(target, mult_val, next_remaining) or check(target, add_val, next_remaining)
+    return set_dict
 
-def check_line(line):
-    (left,right) = line.split(": ")
 
-    target = int(left)
-    numbers = [int(x) for x in right.split()]
+def is_valid_point(matrix, point):
+    if point[0] < 0 or point[1] < 0:
+        return False
 
-    current = numbers[0]
-    remaining = numbers[1:]
+    return point[0] < len(matrix[0]) and point[1] < len(matrix)
 
-    if check(target, current, remaining):
-        return target
-    return 0
+def get_antinodes(a, b):
+    diff = (a[0]-b[0], a[1]-b[1])
 
+    ant1 = (a[0]+diff[0], a[1]+diff[1])
+    ant2 = (b[0]-diff[0], b[1]-diff[1])
+
+    return [ant1, ant2]
 
 
 def solve(filename):
     lines = read_file_lines(filename)
 
-    vals = [check_line(line) for line in lines]
+    point_set = to_point_sets(lines)
 
-    ans = sum(vals)
+    antipoints = set()
+
+    for (key, points) in point_set.items():
+        pairs = combinations(points, 2)
+        for (a, b) in pairs:
+            for antipoint in get_antinodes(a,b):
+                if is_valid_point(lines, antipoint):
+                    antipoints.add(antipoint)
+
+    ans = len(antipoints)
     print(f'ans: {ans}')
 
 def read_file_lines(filename):
